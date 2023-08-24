@@ -9,7 +9,7 @@ import (
 func main() {
 	app := fiber.New()
 
-	app.Static("/denis", "./frontend/build")
+	app.Static("/", "./frontend/build")
 
 	log.Fatal(app.Listen(":3000"))
 }
