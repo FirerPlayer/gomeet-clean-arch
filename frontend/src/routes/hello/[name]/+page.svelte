@@ -4,6 +4,6 @@
 	let name: string = $page.params.name;
 </script>
 
-<h1 style="text-align: center;">
+<h1 text-center text-amber>
 	Hello {name} !!!!!!
 </h1>
