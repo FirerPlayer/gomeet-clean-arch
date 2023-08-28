@@ -2,4 +2,4 @@
 	let name: string = 'Denis';
 </script>
 
-<div text-amber>oi</div>
+oi

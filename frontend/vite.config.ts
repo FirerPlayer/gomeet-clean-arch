@@ -8,7 +8,6 @@ export default defineConfig({
 	plugins: [
 		UnoCSS({
 			extractors: [extractorSvelte()]
-			// presets: [presetUno(), presetAttributify(), presetIcons()]
 		}),
 		sveltekit()
 	],
