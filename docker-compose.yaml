@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  gomeet-back:
+    build: .
+    container_name: gomeet-back
+    volumes:
+      - .:/go/src
+    ports:
+      - "8080:8080"
+    restart: always
+  gomeet-front:
+    build: frontend
+    container_name: gomeet-front
+    volumes:
+      - ./frontend:/home/bun/app
+    ports:
+      - "3000:3000"
+    command: cd /home/bun/app/build && bun ./index.js
