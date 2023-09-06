@@ -8,10 +8,10 @@
 </script>
 
 <div
-	class="min-h-screen bg-white dark:bg-primary-900 text-black dark:text-white flex-(~ col) items-center"
+	class="min-h-screen bg-white dark:bg-obscure text-black dark:text-white flex-(~ col) items-center"
 >
 	<header
-		class="bg-primary-500 dark:bg-primary-700 rounded-(b-10) min-h-12 min-w-sm max-w-2xl w-full mx-4 p-4 flex items-center justify-between border-(b x current)"
+		class="bg-primary-200 dark:bg-primary-900 rounded-(b-10) min-h-12 min-w-sm max-w-2xl w-full mx-4 p-4 flex items-center justify-between border-(b x current)"
 	>
 		<div class="centered space-x-3">
 			<div class="bg-red rounded-full p-1 shadow-inner shadow-white/80">

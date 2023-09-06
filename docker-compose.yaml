@@ -13,7 +13,6 @@ services:
     build: frontend
     container_name: gomeet-front
     volumes:
-      - ./frontend:/home/bun/app
+      - /home/bun/app
     ports:
       - "3000:3000"
-    command: cd /home/bun/app/build && bun ./index.js
