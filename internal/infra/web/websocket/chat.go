@@ -65,7 +65,7 @@ func (h *Hub) runHub() {
 
 			// Create a new ChatWS instance and register the connection
 			h.chats[connection] = NewChatWS(chat, connection)
-			log.Printf("Websocket connection registered. Chat ID: %s", chat.Id.String())
+			log.Printf("Websocket connection registered. Chat ID: %s", chat.ID.String())
 
 		case message := <-h.broadcast:
 			log.Printf("message received: %s", message)
@@ -83,12 +83,12 @@ func (h *Hub) runHub() {
 					}
 
 					// If the ChatWS matches the message's ChatID, send the message
-					if currChat.Id.String() == message.ChatId.String() {
+					if currChat.ID.String() == message.ChatId {
 						err := connection.WriteMessage(websocket.TextMessage, []byte(message.Content))
 						if err != nil {
 							// Mark the ChatWS as closing and log the error
 							currChat.isClosing = true
-							log.Printf("websocket from user %s write error: %v", currChat.Id.String(), err)
+							log.Printf("websocket from user %s write error: %v", currChat.ID.String(), err)
 
 							// Send a close message to the client and close the connection
 							connection.WriteMessage(websocket.CloseMessage, []byte{})

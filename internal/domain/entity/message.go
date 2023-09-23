@@ -1,17 +1,19 @@
 package entity
 
-import "github.com/google/uuid"
+import "time"
 
 type Message struct {
-	ChatId  uuid.UUID
+	ChatId  string
 	Content string
 	Files   [][]byte
+	Created time.Time
 }
 
-func NewMessage(chatId uuid.UUID, content string, files [][]byte) *Message {
+func NewMessage(chatId string, content string, files [][]byte) *Message {
 	return &Message{
 		ChatId:  chatId,
 		Content: content,
 		Files:   files,
+		Created: time.Now(),
 	}
 }
