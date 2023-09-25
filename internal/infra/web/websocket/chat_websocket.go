@@ -6,6 +6,9 @@ import (
 	"sync"
 
 	"github.com/firerplayer/whatsmeet-go/internal/domain/entity"
+	usecase "github.com/firerplayer/whatsmeet-go/internal/usecase/chat"
+	"github.com/firerplayer/whatsmeet-go/internal/usecase/dto"
+	message "github.com/firerplayer/whatsmeet-go/internal/usecase/message"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,28 +18,30 @@ import (
 // 	Id string
 // }
 
-type ChatWS struct {
-	entity.Chat
+type chatWS struct {
+	ChatID     string
 	Connection *websocket.Conn
 	mu         sync.Mutex
 	isClosing  bool
 }
 
-func NewChatWS(chat entity.Chat, connection *websocket.Conn) *ChatWS {
-	return &ChatWS{
-		Chat:       chat,
+func newChatWS(chat_id string, connection *websocket.Conn) *chatWS {
+	return &chatWS{
+		ChatID:     chat_id,
 		Connection: connection,
 	}
 }
 
 type Hub struct {
-	app        *fiber.App
-	ctx        *fiber.Ctx
-	path       string
-	chats      map[*websocket.Conn]*ChatWS
-	register   chan *websocket.Conn
-	broadcast  chan entity.Message
-	unregister chan *websocket.Conn
+	app                  *fiber.App
+	ctx                  *fiber.Ctx
+	path                 string
+	chats                map[*websocket.Conn]*chatWS
+	register             chan *websocket.Conn
+	broadcast            chan entity.Message
+	unregister           chan *websocket.Conn
+	CreateChatUsecase    usecase.CreateChatUsecase
+	CreateMessageUsecase message.CreateMessageUsecase
 }
 
 func NewHub(path string, app *fiber.App, ctx *fiber.Ctx) *Hub {
@@ -44,7 +49,7 @@ func NewHub(path string, app *fiber.App, ctx *fiber.Ctx) *Hub {
 		app:        app,
 		ctx:        ctx,
 		path:       path,
-		chats:      make(map[*websocket.Conn]*ChatWS),
+		chats:      make(map[*websocket.Conn]*chatWS),
 		register:   make(chan *websocket.Conn),
 		broadcast:  make(chan entity.Message),
 		unregister: make(chan *websocket.Conn),
@@ -55,24 +60,25 @@ func (h *Hub) runHub() {
 	for {
 		select {
 		case connection := <-h.register:
-			var chat entity.Chat
-
-			// Read the incoming JSON message from the connection
-			err := connection.ReadJSON(chat)
+			var input dto.CreateChatInputDTO
+			err := connection.ReadJSON(&input)
 			if err != nil {
 				log.Println("read error at conn initialization: ", err)
 			}
-
-			// Create a new ChatWS instance and register the connection
-			h.chats[connection] = NewChatWS(chat, connection)
-			log.Printf("Websocket connection registered. Chat ID: %s", chat.ID.String())
+			out, err := h.CreateChatUsecase.Execute(h.ctx.Context(), input)
+			if err != nil {
+				log.Println("read error at create chat: ", err)
+			}
+			wsChat := newChatWS(out.ChatID, connection)
+			h.chats[connection] = wsChat
+			log.Printf("Websocket connection registered. Chat ID: %s", wsChat.ChatID)
 
 		case message := <-h.broadcast:
 			log.Printf("message received: %s", message)
 
 			// Send the message to each connected client
 			for connection, chat := range h.chats {
-				go func(connection *websocket.Conn, currChat *ChatWS) {
+				go func(connection *websocket.Conn, currChat *chatWS) {
 					// Acquire a lock on the ChatWS to prevent concurrent modification
 					currChat.mu.Lock()
 					defer currChat.mu.Unlock()
@@ -83,12 +89,23 @@ func (h *Hub) runHub() {
 					}
 
 					// If the ChatWS matches the message's ChatID, send the message
-					if currChat.ID.String() == message.ChatId {
-						err := connection.WriteMessage(websocket.TextMessage, []byte(message.Content))
+					if currChat.ChatID == message.ChatId {
+						newMessage, err := h.CreateMessageUsecase.Execute(h.ctx.Context(), dto.CreateMessageInputDTO{
+							ChatID:  currChat.ChatID,
+							Content: message.Content,
+							Files:   message.Files,
+						})
+						if err != nil {
+							log.Printf("websocket from chat %s write error: %v", currChat.ChatID, err)
+							return
+						}
+
+						err = connection.WriteJSON(newMessage)
+						// err = connection.WriteMessage(websocket.TextMessage, []byte(message.Content))
 						if err != nil {
 							// Mark the ChatWS as closing and log the error
 							currChat.isClosing = true
-							log.Printf("websocket from user %s write error: %v", currChat.ID.String(), err)
+							log.Printf("websocket from chat %s write error: %v", currChat.ChatID, err)
 
 							// Send a close message to the client and close the connection
 							connection.WriteMessage(websocket.CloseMessage, []byte{})

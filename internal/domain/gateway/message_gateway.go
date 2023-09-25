@@ -8,7 +8,7 @@ import (
 
 type MessageGateway interface {
 	Create(ctx context.Context, message *entity.Message) error
-	GetAllByChatId(ctx context.Context, chatId string) ([]*entity.Message, error)
-	GetAllByChatIdAndSearch(ctx context.Context, chatId, search string) ([]*entity.Message, error)
-	DeleteAllByChatId(ctx context.Context, chatId string) error
+	ListMessageByChatID(ctx context.Context, chatID string, limit int) ([]*entity.Message, error)
+	ListMessageByChatIDAndSearch(ctx context.Context, chatID, search string) ([]*entity.Message, error)
+	DeleteAllMessageByChatID(ctx context.Context, chatID string) error
 }

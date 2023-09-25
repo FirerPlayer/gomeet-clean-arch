@@ -1,15 +1,12 @@
 package entity
 
-import "github.com/google/uuid"
-
 type Chat struct {
 	BasicEntity
-	FromUser uuid.UUID
-	ToUsers  []*uuid.UUID
-	Messages []Message
+	FromUser string
+	ToUsers  []string
 }
 
-func NewChat(fromUser uuid.UUID, toUsers []*uuid.UUID) *Chat {
+func NewChat(fromUser string, toUsers []string) *Chat {
 	return &Chat{
 		BasicEntity: NewBasicEntity(),
 		FromUser:    fromUser,

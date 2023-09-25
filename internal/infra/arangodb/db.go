@@ -7,7 +7,7 @@ import (
 	driver "github.com/arangodb/go-driver"
 )
 
-type DBcollection struct {
+type DBCollection struct {
 	ctx        context.Context
 	collection driver.Collection
 }
@@ -32,12 +32,12 @@ func NewDB(ctx context.Context, client driver.Client, database string) (*DB, err
 	return newDb, nil
 }
 
-func (db *DB) FromCollection(collectionName string) (*DBcollection, error) {
+func (db *DB) FromCollection(collectionName string) (*DBCollection, error) {
 	collection, err := db.database.Collection(db.ctx, collectionName)
 	if err != nil {
 		return nil, errors.New("Error finding a collection: " + err.Error())
 	}
-	return &DBcollection{
+	return &DBCollection{
 		ctx:        db.ctx,
 		collection: collection,
 	}, nil
@@ -52,7 +52,7 @@ func (db *DB) setup() error {
 	return nil
 }
 
-func (db *DBcollection) InsertDocument(v interface{}) (*driver.DocumentMeta, error) {
+func (db *DBCollection) InsertDocument(v interface{}) (*driver.DocumentMeta, error) {
 	document, err := db.collection.CreateDocument(db.ctx, v)
 	if err != nil {
 		return nil, errors.New("Failed to create document: " + err.Error())
@@ -60,7 +60,7 @@ func (db *DBcollection) InsertDocument(v interface{}) (*driver.DocumentMeta, err
 	return &document, nil
 }
 
-func (db *DBcollection) DeleteDocument(key string) (*driver.DocumentMeta, error) {
+func (db *DBCollection) DeleteDocument(key string) (*driver.DocumentMeta, error) {
 	meta, err := db.collection.RemoveDocument(db.ctx, key)
 	if err != nil {
 		return nil, errors.New("Failed to delete document: " + err.Error())
@@ -77,7 +77,7 @@ func (db *DBcollection) DeleteDocument(key string) (*driver.DocumentMeta, error)
 // Returns:
 // - *driver.DocumentMeta: metadata of the retrieved document.
 // - error: any error that occurred during the retrieval process.
-func (db *DBcollection) GetByKey(key string, result interface{}) (*driver.DocumentMeta, error) {
+func (db *DBCollection) GetByKey(key string, result interface{}) (*driver.DocumentMeta, error) {
 	meta, err := db.collection.ReadDocument(db.ctx, key, result)
 	if err != nil {
 		return nil, errors.New("Failed to read document: " + err.Error())
@@ -94,7 +94,7 @@ func (db *DBcollection) GetByKey(key string, result interface{}) (*driver.Docume
 //
 // The function returns an error if the query execution or result reading fails.
 // Otherwise, it returns nil.
-func (db *DBcollection) SelectQuery(query string, results []interface{}) error {
+func (db *DBCollection) SelectQuery(query string, results []interface{}) error {
 	cursor, err := db.collection.Database().Query(db.ctx, query, nil)
 	if err != nil {
 		return errors.New("Failed to query: " + err.Error())

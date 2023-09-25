@@ -8,9 +8,10 @@ import (
 )
 
 type UserGateway interface {
-	Create(ctx context.Context, user *entity.User) error
-	DeleteById(ctx context.Context, id string) error
-	GetById(ctx context.Context, id string) (*entity.User, error)
-	GetAll(ctx context.Context) ([]*entity.User, error)
-	UpdateById(ctx context.Context, id string, user *entity.User) error
+	Create(ctx context.Context, user *entity.User) (string, error)
+	DeleteUserByID(ctx context.Context, id string) error
+	GetUserByID(ctx context.Context, id string) (*entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
+	ListAll(ctx context.Context, limit int) ([]*entity.User, error)
+	UpdateUserByID(ctx context.Context, id string, user *entity.User) error
 }

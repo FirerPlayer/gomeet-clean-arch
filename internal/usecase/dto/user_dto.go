@@ -8,7 +8,6 @@ type UserDTO struct {
 	Email     string    `json:"email"`
 	Bio       string    `json:"bio"`
 	Avatar    []byte    `json:"avatar"`
-	Key       string    `json:"key"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -26,30 +25,62 @@ type CreateUserOutputDTO struct {
 	ID string `json:"id"`
 }
 
-// Entrada de DeleteUserById
-type DeleteUserByIdInputDTO struct {
+// Entrada de DeleteUserByID
+type DeleteUserByIDInputDTO struct {
 	ID string `json:"id"`
 }
 
-// Entrada de GetUserById
-type GetUserByIdInputDTO struct {
+// Entrada de GetUserByID
+type GetUserByIDInputDTO struct {
 	ID string `json:"id"`
 }
 
-// Saída de GetUserById
-type GetUserByIdOutputDTO struct {
-	User *UserDTO `json:"user"`
+// Saída de GetUserByID
+type GetUserByIDOutputDTO struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Bio       string    `json:"bio"`
+	Avatar    []byte    `json:"avatar"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// Entrada de GetAllLimitUsers
+type GetAllLimitUsersInputDTO struct {
+	Limit int `json:"limit"`
 }
 
 // Saída de GetAllUsers
-type GetAllUsersOutputDTO struct {
-	Users []*UserDTO `json:"users"`
+type GetAllLimitUsersOutputDTO struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Bio       string    `json:"bio"`
+	Avatar    []byte    `json:"avatar"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// Entrada de UpdateUserById
-type UpdateUserByIdInputDTO struct {
+// Entrada de UpdateUserByID
+type UpdateUserByIDInputDTO struct {
+	UserID string `json:"id"`
 	Name   string `json:"name"`
 	Email  string `json:"email"`
 	Bio    string `json:"bio"`
 	Avatar []byte `json:"avatar"`
+}
+
+type GetUserByEmailInputDTO struct {
+	Email string `json:"email"`
+}
+
+type GetUserByEmailOutputDTO struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Bio       string    `json:"bio"`
+	Avatar    []byte    `json:"avatar"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

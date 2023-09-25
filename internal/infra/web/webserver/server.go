@@ -19,11 +19,12 @@ type WebServer struct {
 	webServerPort  string
 }
 
-func NewWebServer(port string) *WebServer {
+func NewWebServer(port, appName string) *WebServer {
 	return &WebServer{
 		server: fiber.New(fiber.Config{
 			JSONEncoder: sonic.Marshal,
 			JSONDecoder: sonic.Unmarshal,
+			AppName:     appName,
 		}),
 		getHandlers:    make(map[string]FiberHandler),
 		postHandlers:   make(map[string]FiberHandler),

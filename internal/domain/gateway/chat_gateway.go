@@ -7,12 +7,11 @@ import (
 )
 
 type ChatGateway interface {
-	GetByChatId(ctx context.Context, chatId string) (*entity.Chat, error)
-	GetByUserId(ctx context.Context, userId string) (*entity.Chat, error)
-	GetToUsers(ctx context.Context, chatId string) ([]string, error)
-	GetFromUser(ctx context.Context, userId string) (*entity.User, error)
-	Create(ctx context.Context, chat *entity.Chat) error
-	DeleteById(ctx context.Context, chatId string) error
-	AddMessage(ctx context.Context, message *entity.Message) error
-	AddUser(ctx context.Context, user *entity.User) error
+	GetChatByID(ctx context.Context, chatID string) (*entity.Chat, error)
+	ListChatByUserID(ctx context.Context, userID string, limit int) ([]*entity.Chat, error)
+	GetToUsersByChatID(ctx context.Context, chatID string) ([]string, error)
+	GetFromUserByChatID(ctx context.Context, userID string) (*entity.User, error)
+	Create(ctx context.Context, chat *entity.Chat) (string, error)
+	DeleteChatByID(ctx context.Context, chatID string) error
+	AddUserByChatID(ctx context.Context, chatID string, userId string) error
 }
