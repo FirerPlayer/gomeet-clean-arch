@@ -3,14 +3,14 @@ package dto
 import "time"
 
 type CreateMessageInputDTO struct {
-	ChatID  string   `json:"chat_id"`
-	Content string   `json:"content"`
-	Files   [][]byte `json:"files"`
+	ChatID  string `json:"chat_id"`
+	Content string `json:"content"`
+	Files   []byte `json:"files"`
 }
 type CreateMessageOutputDTO struct {
 	ChatID  string    `json:"chat_id"`
 	Content string    `json:"content"`
-	Files   [][]byte  `json:"files"`
+	Files   []byte    `json:"files"`
 	Created time.Time `json:"created"`
 }
 
@@ -22,7 +22,7 @@ type ListMessageByChatIDInputDTO struct {
 type ListMessageByChatIDOutputDTO struct {
 	ChatID  string    `json:"chat_id"`
 	Content string    `json:"content"`
-	Files   [][]byte  `json:"files"`
+	Files   []byte    `json:"files"`
 	Created time.Time `json:"created"`
 }
 
@@ -34,6 +34,6 @@ type ListMessageByChatIDAndSearchInputDTO struct {
 type ListMessageByChatIDAndSearchOutputDTO struct {
 	ChatID  string    `json:"chat_id"`
 	Content string    `json:"content"`
-	Files   [][]byte  `json:"files"`
+	Files   []byte    `json:"files"`
 	Created time.Time `json:"created"`
 }

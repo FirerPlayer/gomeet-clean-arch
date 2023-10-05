@@ -13,45 +13,36 @@ type DBCollection struct {
 }
 
 type DB struct {
-	client       driver.Client
-	databaseName string
-	database     driver.Database
-	ctx          context.Context
+	ctx         context.Context
+	client      driver.Client
+	Database    driver.Database
+	Collections map[string]*DBCollection
 }
 
-func NewDB(ctx context.Context, client driver.Client, database string) (*DB, error) {
-	newDb := &DB{
-		ctx:          ctx,
-		client:       client,
-		databaseName: database,
+func newDB(ctx context.Context, client driver.Client, database driver.Database, mapCollections map[string]*DBCollection) *DB {
+	return &DB{
+		ctx:         ctx,
+		client:      client,
+		Database:    database,
+		Collections: mapCollections,
 	}
-	err := newDb.setup()
-	if err != nil {
-		return nil, errors.New("Failed to setup database: " + err.Error())
-	}
-	return newDb, nil
 }
 
-func (db *DB) FromCollection(collectionName string) (*DBCollection, error) {
-	collection, err := db.database.Collection(db.ctx, collectionName)
-	if err != nil {
-		return nil, errors.New("Error finding a collection: " + err.Error())
-	}
-	return &DBCollection{
-		ctx:        db.ctx,
-		collection: collection,
-	}, nil
+// FromCollection returns the DBCollection associated with the given collection name.
+//
+// Parameters:
+// - collectionName: the name of the collection.
+//
+// Returns:
+// - *DBCollection: the DBCollection associated with the given collection name.
+func (db *DB) FromCollection(collectionName string) *DBCollection {
+	return db.Collections[collectionName]
 }
 
-func (db *DB) setup() error {
-	var err error
-	db.database, err = db.client.Database(db.ctx, db.databaseName)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
+// InsertDocument inserts a document into the DBCollection.
+//
+// It takes a single parameter, v, which is the document to be inserted.
+// The function returns a pointer to a DocumentMeta and an error.
 func (db *DBCollection) InsertDocument(v interface{}) (*driver.DocumentMeta, error) {
 	document, err := db.collection.CreateDocument(db.ctx, v)
 	if err != nil {
@@ -60,6 +51,14 @@ func (db *DBCollection) InsertDocument(v interface{}) (*driver.DocumentMeta, err
 	return &document, nil
 }
 
+// DeleteDocument deletes a document from the DBCollection.
+//
+// Parameters:
+// - key: the key of the document to be deleted.
+//
+// Returns:
+// - *driver.DocumentMeta: the metadata of the deleted document.
+// - error: an error if the deletion fails.
 func (db *DBCollection) DeleteDocument(key string) (*driver.DocumentMeta, error) {
 	meta, err := db.collection.RemoveDocument(db.ctx, key)
 	if err != nil {
@@ -94,8 +93,9 @@ func (db *DBCollection) GetByKey(key string, result interface{}) (*driver.Docume
 //
 // The function returns an error if the query execution or result reading fails.
 // Otherwise, it returns nil.
-func (db *DBCollection) SelectQuery(query string, results []interface{}) error {
+func (db *DBCollection) SelectQuery(query string, results interface{}) error {
 	cursor, err := db.collection.Database().Query(db.ctx, query, nil)
+	out := make([]interface{}, 0)
 	if err != nil {
 		return errors.New("Failed to query: " + err.Error())
 	}
@@ -106,7 +106,8 @@ func (db *DBCollection) SelectQuery(query string, results []interface{}) error {
 		if err != nil {
 			return errors.New("Failed to read document: " + err.Error())
 		}
-		results = append(results, result)
+		out = append(out, result)
 	}
+	results = out
 	return nil
 }
