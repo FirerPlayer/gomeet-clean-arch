@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/firerplayer/whatsmeet-go/internal/domain/entity"
 	"github.com/firerplayer/whatsmeet-go/internal/infra/arangodb"
@@ -34,23 +33,19 @@ func (cr *ChatRepository) Create(ctx context.Context, chat *entity.Chat) (string
 	return meta.Key, nil
 }
 
-var getById = func(q string) string {
-	return fmt.Sprintf(
-		`for user in User 
-			filter user.id == %s 
-			return user`,
-		q,
-	)
-}
+const getChatById = "for chat in Chat filter chat.id == @id return chat"
 
 func (cr *ChatRepository) GetChatByID(ctx context.Context, chatID string) (*entity.Chat, error) {
-	chats := make([]entity.Chat, 0)
-	err := cr.collectionInstance.SelectQuery(getById(chatID), chats)
-	// _, err := cr.collectionInstance.GetByKey(chatID, chat)
-	if err != nil {
-		return nil, errors.New("Failed to get chat by id: " + err.Error())
-	}
-	return &chats[0], nil
+	// bindVars := map[string]interface{}{
+	// 	"id": chatID,
+	// }
+	// err := cr.collectionInstance.SelectQuery(getChatById)
+	// // _, err := cr.collectionInstance.GetByKey(chatID, chat)
+	// if err != nil {
+	// 	return nil, errors.New("Failed to get chat by id: " + err.Error())
+	// }
+	// return &chats[0], nil
+	return nil, nil
 }
 
 func (cr *ChatRepository) ListChatByUserID(ctx context.Context, userID string, limit int) ([]*entity.Chat, error) {

@@ -85,29 +85,17 @@ func (db *DBCollection) GetByKey(key string, result interface{}) (*driver.Docume
 
 }
 
-// SelectQuery is a function that executes a select AQL query on the database.
+// ExecQuery is a function that executes a query on a database collection.
 //
-// It takes a query string and a slice of interface{} as its parameters.
-// The query string represents the select query to be executed.
-// The results slice is used to store the query results.
-//
-// The function returns an error if the query execution or result reading fails.
-// Otherwise, it returns nil.
-func (db *DBCollection) SelectQuery(query string, results interface{}) error {
-	cursor, err := db.collection.Database().Query(db.ctx, query, nil)
-	out := make([]interface{}, 0)
+// It takes a query string and a map of bind variables as parameters.
+// The query string is the query to be executed on the database.
+// The bindVars map contains the bind variables to be used in the query.
+// It returns an error if the query execution fails.
+func (db *DBCollection) ExecQuery(query string, bindVars map[string]interface{}) error {
+	cr, err := db.collection.Database().Query(db.ctx, query, bindVars)
 	if err != nil {
-		return errors.New("Failed to query: " + err.Error())
+		return errors.New("Failed to exec query: " + err.Error())
 	}
-	defer cursor.Close()
-	for cursor.HasMore() {
-		var result interface{}
-		_, err := cursor.ReadDocument(db.ctx, result)
-		if err != nil {
-			return errors.New("Failed to read document: " + err.Error())
-		}
-		out = append(out, result)
-	}
-	results = out
+	defer cr.Close()
 	return nil
 }
