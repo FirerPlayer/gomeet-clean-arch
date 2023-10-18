@@ -3,37 +3,41 @@ package dto
 import "time"
 
 type CreateMessageInputDTO struct {
-	ChatID  string `json:"chat_id"`
+	ChatID  string `json:"chatId"`
 	Content string `json:"content"`
-	Files   []byte `json:"files"`
+	File    []byte `json:"file"`
 }
 type CreateMessageOutputDTO struct {
-	ChatID  string    `json:"chat_id"`
+	ChatID  string    `json:"chatId"`
 	Content string    `json:"content"`
-	Files   []byte    `json:"files"`
+	File    []byte    `json:"file"`
 	Created time.Time `json:"created"`
 }
 
 type ListMessageByChatIDInputDTO struct {
-	ChatID string `json:"chat_id"`
+	ChatID string `json:"chatId"`
 	Limit  int    `json:"limit"`
 }
 
 type ListMessageByChatIDOutputDTO struct {
-	ChatID  string    `json:"chat_id"`
+	ChatID  string    `json:"chatId"`
 	Content string    `json:"content"`
-	Files   []byte    `json:"files"`
+	File    []byte    `json:"file"`
 	Created time.Time `json:"created"`
 }
 
-type ListMessageByChatIDAndSearchInputDTO struct {
-	ChatID string `json:"chat_id"`
-	Query  string `json:"query"`
+type DeleteAllMessageByChatIDInputDTO struct {
+	ChatID string `json:"chatId"`
 }
 
-type ListMessageByChatIDAndSearchOutputDTO struct {
-	ChatID  string    `json:"chat_id"`
-	Content string    `json:"content"`
-	Files   []byte    `json:"files"`
-	Created time.Time `json:"created"`
-}
+// type ListMessageByChatIDAndSearchInputDTO struct {
+// 	ChatID string `json:"chatId"`
+// 	Query  string `json:"query"`
+// }
+
+// type ListMessageByChatIDAndSearchOutputDTO struct {
+// 	ChatID  string    `json:"chatId"`
+// 	Content string    `json:"content"`
+// 	File    []byte    `json:"file"`
+// 	Created time.Time `json:"created"`
+// }

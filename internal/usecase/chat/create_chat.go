@@ -23,7 +23,7 @@ func (u *CreateChatUsecase) Execute(ctx context.Context, input dto.CreateChatInp
 	newChat := entity.NewChat(input.FromUser, input.ToUsers)
 	chatId, err := u.ChatGateway.Create(ctx, newChat)
 	if err != nil {
-		return nil, errors.New("Failed to create chat: " + err.Error())
+		return nil, errors.New("failed to create chat: " + err.Error())
 	}
 
 	return &dto.CreateChatOutputDTO{

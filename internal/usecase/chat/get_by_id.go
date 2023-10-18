@@ -21,7 +21,7 @@ func NewGetByChatIDUsecase(chatGateway gateway.ChatGateway) *GetByChatIDUsecase 
 func (u *GetByChatIDUsecase) Execute(ctx context.Context, input dto.GetByChatIDInputDTO) (*dto.GetByChatIDOutputDTO, error) {
 	chat, err := u.ChatGateway.GetChatByID(ctx, input.ChatID)
 	if err != nil {
-		return nil, errors.New("Failed to get chat by id: " + err.Error())
+		return nil, errors.New("failed to get chat by id: " + err.Error())
 	}
 
 	return &dto.GetByChatIDOutputDTO{

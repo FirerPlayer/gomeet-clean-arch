@@ -18,11 +18,17 @@ func NewAddUserByChatIDUsecase(chatGateway gateway.ChatGateway) *AddUserByChatID
 	}
 }
 
-func (u *AddUserByChatIDUsecase) Execute(ctx context.Context, input dto.AddUserByChatIDInputDTO) error {
-	err := u.ChatGateway.AddUserByChatID(ctx, input.ChatID, input.UserID)
+func (u *AddUserByChatIDUsecase) Execute(ctx context.Context, input dto.AddUserByChatIDInputDTO) (*dto.AddUserByChatIDOutputDTO, error) {
+	chat, err := u.ChatGateway.AddUserByChatID(ctx, input.ChatID, input.UserID)
 	if err != nil {
-		return errors.New("Failed to add user to the chat " + input.ChatID + ": " + err.Error())
+		return nil, errors.New("failed to add user to the chat " + input.ChatID + ": " + err.Error())
 	}
 
-	return nil
+	return &dto.AddUserByChatIDOutputDTO{
+		ID:        chat.ID.String(),
+		ToUsers:   chat.ToUsers,
+		FromUser:  chat.FromUser,
+		CreatedAt: chat.CreatedAt,
+		UpdatedAt: chat.UpdatedAt,
+	}, nil
 }

@@ -21,7 +21,7 @@ func NewListMessageByChatIDUsecase(messageGateway gateway.MessageGateway) *ListM
 func (u *ListMessageByChatIDUsecase) Execute(ctx context.Context, input dto.ListMessageByChatIDInputDTO) ([]*dto.ListMessageByChatIDOutputDTO, error) {
 	result, err := u.MessageGateway.ListMessageByChatID(ctx, input.ChatID, input.Limit)
 	if err != nil {
-		return nil, errors.New("Failed to get users: " + err.Error())
+		return nil, errors.New("failed to get users: " + err.Error())
 	}
 
 	var out []*dto.ListMessageByChatIDOutputDTO
@@ -29,7 +29,7 @@ func (u *ListMessageByChatIDUsecase) Execute(ctx context.Context, input dto.List
 		out = append(out, &dto.ListMessageByChatIDOutputDTO{
 			ChatID:  message.ChatId,
 			Content: message.Content,
-			Files:   message.Files,
+			File:    message.File,
 			Created: message.Created,
 		})
 	}

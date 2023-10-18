@@ -2,16 +2,6 @@ package dto
 
 import "time"
 
-type UserDTO struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Bio       string    `json:"bio"`
-	Avatar    []byte    `json:"avatar"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-}
-
 // Entrada de CreateUser
 type CreateUserInputDTO struct {
 	Name   string `json:"name"`
@@ -69,6 +59,16 @@ type UpdateUserByIDInputDTO struct {
 	Email  string `json:"email"`
 	Bio    string `json:"bio"`
 	Avatar []byte `json:"avatar"`
+}
+
+type UpdateUserByIDOutputDTO struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Bio       string    `json:"bio"`
+	Avatar    []byte    `json:"avatar"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type GetUserByEmailInputDTO struct {

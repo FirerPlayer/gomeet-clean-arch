@@ -1,16 +1,16 @@
 package websocket
 
 import (
-	"encoding/json"
+	"context"
 	"log"
 	"sync"
 
 	"github.com/firerplayer/whatsmeet-go/internal/domain/entity"
+	"github.com/firerplayer/whatsmeet-go/internal/infra/web/webserver"
 	usecase "github.com/firerplayer/whatsmeet-go/internal/usecase/chat"
 	"github.com/firerplayer/whatsmeet-go/internal/usecase/dto"
 	message "github.com/firerplayer/whatsmeet-go/internal/usecase/message"
 	"github.com/gofiber/contrib/websocket"
-	"github.com/gofiber/fiber/v2"
 )
 
 // type websocketConnection struct {
@@ -33,20 +33,20 @@ func newChatWS(chat_id string, connection *websocket.Conn) *chatWS {
 }
 
 type Hub struct {
-	app                  *fiber.App
-	ctx                  *fiber.Ctx
+	webServer            *webserver.WebServer
+	ctx                  context.Context
 	path                 string
 	chats                map[*websocket.Conn]*chatWS
 	register             chan *websocket.Conn
 	broadcast            chan entity.Message
 	unregister           chan *websocket.Conn
-	CreateChatUsecase    usecase.CreateChatUsecase
-	CreateMessageUsecase message.CreateMessageUsecase
+	createChatUsecase    usecase.CreateChatUsecase
+	createMessageUsecase message.CreateMessageUsecase
 }
 
-func NewHub(path string, app *fiber.App, ctx *fiber.Ctx) *Hub {
+func NewHub(path string, webServer *webserver.WebServer, ctx context.Context) *Hub {
 	return &Hub{
-		app:        app,
+		webServer:  webServer,
 		ctx:        ctx,
 		path:       path,
 		chats:      make(map[*websocket.Conn]*chatWS),
@@ -65,7 +65,7 @@ func (h *Hub) runHub() {
 			if err != nil {
 				log.Println("read error at conn initialization: ", err)
 			}
-			out, err := h.CreateChatUsecase.Execute(h.ctx.Context(), input)
+			out, err := h.createChatUsecase.Execute(h.ctx, input)
 			if err != nil {
 				log.Println("read error at create chat: ", err)
 			}
@@ -90,10 +90,10 @@ func (h *Hub) runHub() {
 
 					// If the ChatWS matches the message's ChatID, send the message
 					if currChat.ChatID == message.ChatId {
-						newMessage, err := h.CreateMessageUsecase.Execute(h.ctx.Context(), dto.CreateMessageInputDTO{
+						newMessage, err := h.createMessageUsecase.Execute(h.ctx, dto.CreateMessageInputDTO{
 							ChatID:  currChat.ChatID,
 							Content: message.Content,
-							Files:   message.Files,
+							File:    message.File,
 						})
 						if err != nil {
 							log.Printf("websocket from chat %s write error: %v", currChat.ChatID, err)
@@ -129,8 +129,9 @@ func (h *Hub) runHub() {
 
 func (h *Hub) Run() {
 	go h.runHub()
+	log.Println("Running hub and websocket at: /api" + h.path)
 
-	h.app.Post(h.path, websocket.New(func(cw *websocket.Conn) {
+	h.webServer.Post(h.path, websocket.New(func(cw *websocket.Conn) {
 		// When the function returns, unregister the client and close the connection
 		defer func() {
 			h.unregister <- cw
@@ -141,20 +142,14 @@ func (h *Hub) Run() {
 		h.register <- cw
 
 		for {
-			_, message, err := cw.ReadMessage()
+			var msg entity.Message
+			err := cw.ReadJSON(msg)
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					log.Printf("read error: %v", err)
 				}
-
-				return // Calls the deferred function, i.e. closes the connection on error
-			}
-
-			var msg entity.Message
-
-			err = json.Unmarshal(message, &msg)
-			if err != nil {
 				log.Printf("json unmarshal error: %v", err)
+				return
 			}
 
 			h.broadcast <- msg

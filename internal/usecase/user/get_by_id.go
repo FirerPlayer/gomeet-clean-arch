@@ -21,7 +21,7 @@ func NewGetByIDUsecase(userGateway gateway.UserGateway) *GetByIDUsecase {
 func (u *GetByIDUsecase) Execute(ctx context.Context, input dto.GetUserByIDInputDTO) (*dto.GetUserByIDOutputDTO, error) {
 	user, err := u.UserGateway.GetUserByID(ctx, input.ID)
 	if err != nil {
-		return nil, errors.New("Failed to get user: " + err.Error())
+		return nil, errors.New("failed to get user: " + err.Error())
 	}
 
 	return &dto.GetUserByIDOutputDTO{

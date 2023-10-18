@@ -13,5 +13,5 @@ type UserGateway interface {
 	GetUserByID(ctx context.Context, id string) (*entity.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	ListAll(ctx context.Context, limit int) ([]*entity.User, error)
-	UpdateUserByID(ctx context.Context, id string, user *entity.User) error
+	UpdateUserByID(ctx context.Context, id string, user *entity.User) (*entity.User, error)
 }

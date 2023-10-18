@@ -99,3 +99,7 @@ func (db *DBCollection) ExecQuery(query string, bindVars map[string]interface{})
 	defer cr.Close()
 	return nil
 }
+
+func (db *DBCollection) Collection() *driver.Collection {
+	return &db.collection
+}

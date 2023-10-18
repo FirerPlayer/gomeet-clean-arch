@@ -21,7 +21,7 @@ func NewListChatByUserIDUsecase(chatGateway gateway.ChatGateway) *ListChatByUser
 func (u *ListChatByUserIDUsecase) Execute(ctx context.Context, input dto.ListChatByUserIDInputDTO) ([]*dto.ListChatByUserIDOutputDTO, error) {
 	result, err := u.ChatGateway.ListChatByUserID(ctx, input.UserID, input.Limit)
 	if err != nil {
-		return nil, errors.New("Failed to get users: " + err.Error())
+		return nil, errors.New("failed to get users: " + err.Error())
 	}
 	var out []*dto.ListChatByUserIDOutputDTO
 	for _, chat := range result {

@@ -9,9 +9,7 @@ import (
 type ChatGateway interface {
 	GetChatByID(ctx context.Context, chatID string) (*entity.Chat, error)
 	ListChatByUserID(ctx context.Context, userID string, limit int) ([]*entity.Chat, error)
-	GetToUsersByChatID(ctx context.Context, chatID string) ([]string, error)
-	GetFromUserByChatID(ctx context.Context, userID string) (*entity.User, error)
 	Create(ctx context.Context, chat *entity.Chat) (string, error)
 	DeleteChatByID(ctx context.Context, chatID string) error
-	AddUserByChatID(ctx context.Context, chatID string, userId string) error
+	AddUserByChatID(ctx context.Context, chatID string, userId string) (*entity.Chat, error)
 }

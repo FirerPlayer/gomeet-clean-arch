@@ -24,7 +24,7 @@ func (u *CreateUserUsecase) Execute(ctx context.Context, input dto.CreateUserInp
 	newUser := entity.NewUser(input.Name, input.Email, input.Bio, input.Avatar)
 	id, err := u.UserGateway.Create(ctx, newUser)
 	if err != nil {
-		return nil, errors.New("Failed to create user: " + err.Error())
+		return nil, errors.New("failed to create user: " + err.Error())
 	}
 
 	return &dto.CreateUserOutputDTO{

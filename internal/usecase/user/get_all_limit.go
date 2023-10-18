@@ -21,7 +21,7 @@ func NewGetAllLimitUsersUsecase(userGateway gateway.UserGateway) *GetAllLimitUse
 func (u *GetAllLimitUsersUsecase) Execute(ctx context.Context, input dto.GetAllLimitUsersInputDTO) ([]*dto.GetAllLimitUsersOutputDTO, error) {
 	result, err := u.UserGateway.ListAll(ctx, input.Limit)
 	if err != nil {
-		return nil, errors.New("Failed to get users: " + err.Error())
+		return nil, errors.New("failed to get users: " + err.Error())
 	}
 
 	var out []*dto.GetAllLimitUsersOutputDTO

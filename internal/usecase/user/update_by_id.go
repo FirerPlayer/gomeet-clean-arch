@@ -19,8 +19,8 @@ func NewUpdateByIDUsecase(userGateway gateway.UserGateway) *UpdateByIDUsecase {
 	}
 }
 
-func (u *UpdateByIDUsecase) Execute(ctx context.Context, input dto.UpdateUserByIDInputDTO) error {
-	err := u.UserGateway.UpdateUserByID(ctx, input.UserID,
+func (u *UpdateByIDUsecase) Execute(ctx context.Context, input dto.UpdateUserByIDInputDTO) (*dto.UpdateUserByIDOutputDTO, error) {
+	updatedUser, err := u.UserGateway.UpdateUserByID(ctx, input.UserID,
 		&entity.User{
 			Name:   input.Name,
 			Email:  input.Email,
@@ -29,7 +29,15 @@ func (u *UpdateByIDUsecase) Execute(ctx context.Context, input dto.UpdateUserByI
 		},
 	)
 	if err != nil {
-		return errors.New("Failed to update user: " + err.Error())
+		return nil, errors.New("Failed to update user: " + err.Error())
 	}
-	return nil
+	return &dto.UpdateUserByIDOutputDTO{
+		ID:        updatedUser.ID.String(),
+		Name:      updatedUser.Name,
+		Email:     updatedUser.Email,
+		Bio:       updatedUser.Bio,
+		Avatar:    updatedUser.Avatar,
+		CreatedAt: updatedUser.CreatedAt,
+		UpdatedAt: updatedUser.UpdatedAt,
+	}, nil
 }

@@ -21,7 +21,7 @@ func NewGetByEmailUsecase(userGateway gateway.UserGateway) *GetByEmailUsecase {
 func (u *GetByEmailUsecase) Execute(ctx context.Context, input dto.GetUserByEmailInputDTO) (*dto.GetUserByEmailOutputDTO, error) {
 	user, err := u.UserGateway.GetUserByEmail(ctx, input.Email)
 	if err != nil {
-		return nil, errors.New("Failed to get user by email: " + err.Error())
+		return nil, errors.New("failed to get user by email: " + err.Error())
 	}
 
 	return &dto.GetUserByEmailOutputDTO{

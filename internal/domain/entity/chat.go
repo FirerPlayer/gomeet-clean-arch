@@ -2,8 +2,8 @@ package entity
 
 type Chat struct {
 	BasicEntity
-	FromUser string
-	ToUsers  []string
+	FromUser string   `json:"fromUser"`
+	ToUsers  []string `json:"toUsers"`
 }
 
 func NewChat(fromUser string, toUsers []string) *Chat {

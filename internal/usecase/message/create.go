@@ -20,15 +20,15 @@ func NewCreateMessageUsecase(messageGateway gateway.MessageGateway) *CreateMessa
 }
 
 func (mu *CreateMessageUsecase) Execute(ctx context.Context, message dto.CreateMessageInputDTO) (*dto.CreateMessageOutputDTO, error) {
-	newMessage := entity.NewMessage(message.ChatID, message.Content, message.Files)
+	newMessage := entity.NewMessage(message.ChatID, message.Content, message.File)
 	err := mu.MessageGateway.Create(ctx, newMessage)
 	if err != nil {
-		return nil, errors.New("Failed to create message: " + err.Error())
+		return nil, errors.New("failed to create message: " + err.Error())
 	}
 	return &dto.CreateMessageOutputDTO{
 		ChatID:  newMessage.ChatId,
 		Content: newMessage.Content,
-		Files:   newMessage.Files,
+		File:    newMessage.File,
 		Created: newMessage.Created,
 	}, nil
 }

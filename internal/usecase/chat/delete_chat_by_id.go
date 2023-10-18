@@ -23,11 +23,11 @@ func NewDeleteChatByIDUsecase(chatGateway gateway.ChatGateway, messageGateway ga
 func (u *DeleteChatByIDUsecase) Execute(ctx context.Context, input dto.DeleteChatByIDInputDTO) error {
 	err := u.MessageGateay.DeleteAllMessageByChatID(ctx, input.ChatID)
 	if err != nil {
-		return errors.New("Failed to delete messages: " + err.Error())
+		return errors.New("failed to delete messages: " + err.Error())
 	}
 	err = u.ChatGateway.DeleteChatByID(ctx, input.ChatID)
 	if err != nil {
-		return errors.New("Failed to delete chat: " + err.Error())
+		return errors.New("failed to delete chat: " + err.Error())
 	}
 
 	return nil
