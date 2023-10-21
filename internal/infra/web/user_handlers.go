@@ -39,27 +39,36 @@ func NewUsersWebHandlers(
 
 func (u *UsersWebHandlers) RegisterRoutes() {
 	u.webServer.Get("/user/all", u.GetAllLimitUsers)
-	u.webServer.Get("/user/:id", u.GetByID)
+	u.webServer.Get("/user/details", u.GetByIDOrEmail)
 	u.webServer.Post("/user", u.CreateUser)
-	u.webServer.Delete("/user/:id", u.DeleteByID)
+	u.webServer.Delete("/user", u.DeleteByID)
 	u.webServer.Put("/user/:id", u.UpdateByID)
 }
 
-func (u *UsersWebHandlers) GetByID(c *fiber.Ctx) error {
-	id := c.Params("id", "invalid")
-	if id == "invalid" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "id is required",
-		})
+func (u *UsersWebHandlers) GetByIDOrEmail(c *fiber.Ctx) error {
+	id := c.Query("id")
+	email := c.Query("email")
+	if id != "" {
+		usrOut, err := u.GetByIDUsecase.Execute(c.Context(), dto.GetUserByIDInputDTO{ID: id})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusOK).JSON(usrOut)
+	} else if email != "" {
+		usrOut, err := u.GetByEmailUsecase.Execute(c.Context(), dto.GetUserByEmailInputDTO{Email: email})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusOK).JSON(usrOut)
 	}
-	usrOut, err := u.GetByIDUsecase.Execute(c.Context(), dto.GetUserByIDInputDTO{ID: id})
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
-	}
-	return c.Status(fiber.StatusOK).JSON(usrOut)
 
+	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		"message": "id or email is required",
+	})
 }
 
 func (u *UsersWebHandlers) GetAllLimitUsers(c *fiber.Ctx) error {
@@ -93,8 +102,8 @@ func (u *UsersWebHandlers) CreateUser(c *fiber.Ctx) error {
 }
 
 func (u *UsersWebHandlers) DeleteByID(c *fiber.Ctx) error {
-	id := c.Params("id", "invalid")
-	if id == "invalid" {
+	id := c.Query("id")
+	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "id is required",
 		})
@@ -124,6 +133,7 @@ func (u *UsersWebHandlers) UpdateByID(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
+	input.UserID = id
 	out, err := u.UpdateByIDUsecase.Execute(c.Context(), input)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

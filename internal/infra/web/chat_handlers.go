@@ -33,19 +33,20 @@ func NewChatWebHandlers(
 }
 
 func (u *ChatWebHandlers) RegisterRoutes() {
-	u.webServer.Get("/chat/:chatID", u.GetByChatID)
+	u.webServer.Get("/chat/details", u.GetByChatID)
 	u.webServer.Get("/chat/all/:userID", u.ListChatByUserID)
 	u.webServer.Post("/chat/add-user", u.AddUserByChatID)
+	u.webServer.Delete("/chat", u.DeleteByID)
 }
 
 // GetByChatID handles the request to retrieve a chat by its ID.
 //
 // It takes a fiber.Ctx object as a parameter and returns an error.
 func (u *ChatWebHandlers) GetByChatID(c *fiber.Ctx) error {
-	chatID := c.Params("chatID", "invalid")
-	if chatID == "invalid" {
+	chatID := c.Query("id")
+	if chatID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "chatID is required",
+			"message": "id is required",
 		})
 	}
 	chatOut, err := u.GetByChatIDUsecase.Execute(c.Context(), dto.GetByChatIDInputDTO{ChatID: chatID})
@@ -81,22 +82,14 @@ func (u *ChatWebHandlers) ListChatByUserID(c *fiber.Ctx) error {
 //
 // It takes a *fiber.Ctx parameter and returns an error.
 func (u *ChatWebHandlers) AddUserByChatID(c *fiber.Ctx) error {
-	chatID := c.Params("chatID", "invalid")
-	if chatID == "invalid" {
+	var input dto.AddUserByChatIDInputDTO
+	err := c.BodyParser(input)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "chatID is required",
+			"message": err.Error(),
 		})
 	}
-	userID := c.Params("userID", "invalid")
-	if userID == "invalid" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "userID is required",
-		})
-	}
-	chat, err := u.AddUserByChatIDUsecase.Execute(c.Context(), dto.AddUserByChatIDInputDTO{
-		ChatID: chatID,
-		UserID: userID,
-	})
+	chat, err := u.AddUserByChatIDUsecase.Execute(c.Context(), input)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
@@ -106,10 +99,10 @@ func (u *ChatWebHandlers) AddUserByChatID(c *fiber.Ctx) error {
 }
 
 func (u *ChatWebHandlers) DeleteByID(c *fiber.Ctx) error {
-	chatID := c.Params("chatID", "invalid")
-	if chatID == "invalid" {
+	chatID := c.Query("id")
+	if chatID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "chatID is required",
+			"message": "chatId is required",
 		})
 	}
 	err := u.DeleteChatByIDUsecase.Execute(c.Context(), dto.DeleteChatByIDInputDTO{

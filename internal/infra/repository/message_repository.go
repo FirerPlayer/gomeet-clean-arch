@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/firerplayer/whatsmeet-go/internal/domain/entity"
 	"github.com/firerplayer/whatsmeet-go/internal/infra/arangodb"
@@ -23,12 +24,29 @@ func NewMessageRepository(db *arangodb.DB, collectionName string) *MessageReposi
 	}
 }
 
+type MessageDocument struct {
+	ChatID  string
+	Content string
+	File    []byte
+	Created string
+}
+
+func newMessageDocument(message *entity.Message) *MessageDocument {
+	return &MessageDocument{
+		ChatID:  message.ChatId,
+		Content: message.Content,
+		File:    message.File,
+		Created: message.Created.Format(time.RFC3339),
+	}
+}
+
 // Create saves a message to the database.
 //
 // It takes a context and a message as parameters.
 // It returns an error if the message fails to be created.
 func (mr *MessageRepository) Create(ctx context.Context, message *entity.Message) error {
-	_, err := mr.dbCollection.InsertDocument(message)
+	messageDocument := newMessageDocument(message)
+	_, err := mr.dbCollection.InsertDocument(messageDocument)
 	if err != nil {
 		return errors.New("Failed to create message: " + err.Error())
 	}
@@ -56,12 +74,12 @@ func (mr *MessageRepository) ListMessageByChatID(ctx context.Context, chatID str
 	defer cursor.Close()
 	var messages []*entity.Message
 	for cursor.HasMore() {
-		var message entity.Message
+		var message *entity.Message
 		_, err = cursor.ReadDocument(ctx, &message)
 		if err != nil {
 			return nil, errors.New("Failed to list messages: " + err.Error())
 		}
-		messages = append(messages, &message)
+		messages = append(messages, message)
 	}
 	return messages, nil
 }

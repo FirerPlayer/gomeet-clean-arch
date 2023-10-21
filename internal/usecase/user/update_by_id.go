@@ -29,7 +29,7 @@ func (u *UpdateByIDUsecase) Execute(ctx context.Context, input dto.UpdateUserByI
 		},
 	)
 	if err != nil {
-		return nil, errors.New("Failed to update user: " + err.Error())
+		return nil, errors.New("failed to update user: " + err.Error())
 	}
 	return &dto.UpdateUserByIDOutputDTO{
 		ID:        updatedUser.ID.String(),

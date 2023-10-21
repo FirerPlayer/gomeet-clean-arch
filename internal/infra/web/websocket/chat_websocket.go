@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"context"
-	"log"
 	"sync"
 
 	"github.com/firerplayer/whatsmeet-go/internal/domain/entity"
@@ -11,6 +10,7 @@ import (
 	"github.com/firerplayer/whatsmeet-go/internal/usecase/dto"
 	message "github.com/firerplayer/whatsmeet-go/internal/usecase/message"
 	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 // type websocketConnection struct {
@@ -36,10 +36,10 @@ type Hub struct {
 	webServer            *webserver.WebServer
 	ctx                  context.Context
 	path                 string
-	chats                map[*websocket.Conn]*chatWS
+	chats                map[*string]*chatWS
 	register             chan *websocket.Conn
 	broadcast            chan entity.Message
-	unregister           chan *websocket.Conn
+	unregister           chan *string
 	createChatUsecase    usecase.CreateChatUsecase
 	createMessageUsecase message.CreateMessageUsecase
 }
@@ -49,10 +49,10 @@ func NewHub(path string, webServer *webserver.WebServer, ctx context.Context) *H
 		webServer:  webServer,
 		ctx:        ctx,
 		path:       path,
-		chats:      make(map[*websocket.Conn]*chatWS),
+		chats:      make(map[*string]*chatWS),
 		register:   make(chan *websocket.Conn),
 		broadcast:  make(chan entity.Message),
-		unregister: make(chan *websocket.Conn),
+		unregister: make(chan *string),
 	}
 }
 
@@ -63,22 +63,22 @@ func (h *Hub) runHub() {
 			var input dto.CreateChatInputDTO
 			err := connection.ReadJSON(&input)
 			if err != nil {
-				log.Println("read error at conn initialization: ", err)
+				log.Info("read error at conn initialization: ", err)
 			}
 			out, err := h.createChatUsecase.Execute(h.ctx, input)
 			if err != nil {
-				log.Println("read error at create chat: ", err)
+				log.Info("read error at create chat: ", err)
 			}
 			wsChat := newChatWS(out.ChatID, connection)
-			h.chats[connection] = wsChat
-			log.Printf("Websocket connection registered. Chat ID: %s", wsChat.ChatID)
+			h.chats[&out.ChatID] = wsChat
+			log.Infof("Websocket connection registered. Chat ID: %s", wsChat.ChatID)
 
 		case message := <-h.broadcast:
-			log.Printf("message received: %s", message)
+			log.Infof("message received: %s", message)
 
 			// Send the message to each connected client
-			for connection, chat := range h.chats {
-				go func(connection *websocket.Conn, currChat *chatWS) {
+			for chatId, chat := range h.chats {
+				go func(chatId *string, currChat *chatWS) {
 					// Acquire a lock on the ChatWS to prevent concurrent modification
 					currChat.mu.Lock()
 					defer currChat.mu.Unlock()
@@ -88,55 +88,55 @@ func (h *Hub) runHub() {
 						return
 					}
 
-					// If the ChatWS matches the message's ChatID, send the message
-					if currChat.ChatID == message.ChatId {
+					// If the chatId matches the message's ChatID, send the message
+					if *chatId == message.ChatId {
 						newMessage, err := h.createMessageUsecase.Execute(h.ctx, dto.CreateMessageInputDTO{
 							ChatID:  currChat.ChatID,
 							Content: message.Content,
 							File:    message.File,
 						})
 						if err != nil {
-							log.Printf("websocket from chat %s write error: %v", currChat.ChatID, err)
+							log.Errorf("websocket from chat %s write error: %v", currChat.ChatID, err)
 							return
 						}
 
-						err = connection.WriteJSON(newMessage)
+						err = currChat.Connection.WriteJSON(newMessage)
 						// err = connection.WriteMessage(websocket.TextMessage, []byte(message.Content))
 						if err != nil {
 							// Mark the ChatWS as closing and log the error
 							currChat.isClosing = true
-							log.Printf("websocket from chat %s write error: %v", currChat.ChatID, err)
+							log.Errorf("websocket from chat %s write error: %v", currChat.ChatID, err)
 
 							// Send a close message to the client and close the connection
-							connection.WriteMessage(websocket.CloseMessage, []byte{})
-							connection.Close()
+							currChat.Connection.WriteMessage(websocket.CloseMessage, []byte{})
+							currChat.Connection.Close()
 
 							// Unregister the connection from the hub
-							h.unregister <- connection
+							h.unregister <- chatId
 						}
 					}
-				}(connection, chat)
+				}(chatId, chat)
 			}
 
-		case connection := <-h.unregister:
+		case chatId := <-h.unregister:
 			// Remove the client from the hub
-			delete(h.chats, connection)
+			delete(h.chats, chatId)
 
-			log.Println("connection unregistered")
+			log.Info("connection unregistered: " + *chatId)
 		}
 	}
 }
 
 func (h *Hub) Run() {
 	go h.runHub()
-	log.Println("Running hub and websocket at: /api" + h.path)
+	log.Info("Running hub and websocket at: /api" + h.path)
 
-	h.webServer.Post(h.path, websocket.New(func(cw *websocket.Conn) {
+	h.webServer.Get(h.path, websocket.New(func(cw *websocket.Conn) {
 		// When the function returns, unregister the client and close the connection
-		defer func() {
-			h.unregister <- cw
-			cw.Close()
-		}()
+		// defer func() {
+		// 	h.unregister <- cw
+		// 	cw.Close()
+		// }()
 
 		// Register the client
 		h.register <- cw
@@ -146,9 +146,14 @@ func (h *Hub) Run() {
 			err := cw.ReadJSON(msg)
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					log.Printf("read error: %v", err)
+					log.Errorf("read error: %v", err)
+					h.unregister <- &msg.ChatId
+					cw.Close()
+					return
 				}
-				log.Printf("json unmarshal error: %v", err)
+				log.Errorf("json unmarshal error: %v", err)
+				h.unregister <- &msg.ChatId
+				cw.Close()
 				return
 			}
 

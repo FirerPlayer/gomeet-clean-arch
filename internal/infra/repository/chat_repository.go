@@ -15,6 +15,22 @@ type ChatRepository struct {
 	dbCollection   *arangodb.DBCollection
 }
 
+type ChatDocument struct {
+	Key      string   `json:"_key"`
+	Id       string   `json:"id"`
+	FromUser string   `json:"fromUser"`
+	ToUsers  []string `json:"toUsers"`
+}
+
+func NewChatDocument(chat *entity.Chat) *ChatDocument {
+	return &ChatDocument{
+		Key:      chat.ID.String(),
+		Id:       chat.ID.String(),
+		FromUser: chat.FromUser,
+		ToUsers:  chat.ToUsers,
+	}
+}
+
 func NewChatRepository(db *arangodb.DB, collectionName string) *ChatRepository {
 	coll := db.FromCollection(collectionName)
 	return &ChatRepository{
@@ -24,31 +40,20 @@ func NewChatRepository(db *arangodb.DB, collectionName string) *ChatRepository {
 	}
 }
 
-// var byID = ""
-
 func (cr *ChatRepository) Create(ctx context.Context, chat *entity.Chat) (string, error) {
-	_, err := cr.dbCollection.InsertDocument(chat)
+	chatDocument := NewChatDocument(chat)
+	_, err := cr.dbCollection.InsertDocument(chatDocument)
 	if err != nil {
 		return "", errors.New("failed to create chat: " + err.Error())
 	}
 	return chat.ID.String(), nil
 }
 
-const getChatById = "for chat in Chat filter chat.id == @id return chat"
-
 func (cr *ChatRepository) GetChatByID(ctx context.Context, chatID string) (*entity.Chat, error) {
-	bindVars := map[string]interface{}{
-		"id": chatID,
-	}
-	cursor, err := cr.arangodb.Database.Query(ctx, getChatById, bindVars)
-	if err != nil {
-		return nil, errors.New("failed to get chat by id: " + err.Error())
-	}
-	defer cursor.Close()
 	var chat *entity.Chat
-	_, err = cursor.ReadDocument(ctx, &chat)
+	_, err := cr.dbCollection.GetByKey(chatID, &chat)
 	if err != nil {
-		if driver.IsNoMoreDocuments(err) {
+		if driver.IsDataSourceOrDocumentNotFound(err) {
 			return nil, errors.New("chat not found with id: " + chatID)
 		}
 		return nil, errors.New("failed to get chat by id: " + err.Error())
@@ -83,14 +88,12 @@ func (cr *ChatRepository) ListChatByUserID(ctx context.Context, userID string, l
 	return chats, nil
 }
 
-const deleteChatByID = "for chat in Chat filter chat.id == @chatID remove chat in Chat"
-
 func (cr *ChatRepository) DeleteChatByID(ctx context.Context, chatID string) error {
-	bindVars := map[string]interface{}{
-		"chatID": chatID,
-	}
-	err := cr.dbCollection.ExecQuery(deleteChatByID, bindVars)
+	_, err := cr.dbCollection.DeleteDocument(chatID)
 	if err != nil {
+		if driver.IsDataSourceOrDocumentNotFound(err) {
+			return errors.New("chat not found with id: " + chatID)
+		}
 		return errors.New("failed to delete chat: " + err.Error())
 	}
 	return nil

@@ -5,7 +5,8 @@
 # Learn more from ready-to-use templates: https://www.gitpod.io/docs/introduction/getting-started/quickstart
 
 tasks:
-  - init: go get && go build ./... && go test ./...
-    command: go run .
+  - before: curl -fsSL https://bun.sh/install | bash && source /home/gitpod/.bashrc #pnpm install && pnpm run build
+  - init: bun i
+    command: bun run dev
 
 

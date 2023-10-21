@@ -5,6 +5,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -56,6 +57,7 @@ func (wb *WebServer) GetApp() *fiber.App {
 
 func (wb *WebServer) Start() error {
 	wb.app.Use(logger.New())
+	wb.app.Use(cors.New())
 	apiR := wb.app.Group("/api")
 
 	for path, hdl := range wb.getHandlers {
