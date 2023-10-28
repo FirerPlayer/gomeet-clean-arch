@@ -9,13 +9,13 @@ export type Chat = {
 export type Message = {
 	chatId: string;
 	content: string;
-	file: Blob;
+	file: Int8Array;
 	created: Date;
 };
 
 export type User = {
 	id: string;
-	avatar: Blob;
+	avatar: Int8Array;
 	name: string;
 	email: string;
 	bio: string;
